@@ -154,8 +154,9 @@ WHERE u.Id = @id";
             try
             {
                 SqlCommand command = new SqlCommand();
-                command.CommandText = "INSERT INTO Usuarios(Nome, Email, Sexo, RG, CPF, NomeMae, SituacaoCadastro, DataCadastro) VALUES (@Nome, @Email, @Sexo, @RG, @CPF, @NomeMae, @SituacaoCadastro, @DataCadastro); SELECT CAST(scope_identity() AS int)";
                 command.Connection = (SqlConnection)_connection;
+                command.CommandText = "INSERT INTO Usuarios(Nome, Email, Sexo, RG, CPF, NomeMae, SituacaoCadastro, DataCadastro) VALUES (@Nome, @Email, @Sexo, @RG, @CPF, @NomeMae, @SituacaoCadastro, @DataCadastro); SELECT CAST(scope_identity() AS int)";
+                _connection.Open();
 
                 command.Parameters.AddWithValue("@Nome", usuario.Nome);
                 command.Parameters.AddWithValue("@Email", usuario.Email);
@@ -165,10 +166,50 @@ WHERE u.Id = @id";
                 command.Parameters.AddWithValue("@NomeMae", usuario.NomeMae);
                 command.Parameters.AddWithValue("@SituacaoCadastro", usuario.SituacaoCadastro);
                 command.Parameters.AddWithValue("@DataCadastro", usuario.DataCadastro);
-
-                _connection.Open();
-
                 usuario.Id = (int)command.ExecuteScalar();
+
+                command.CommandText = "INSERT INTO Contatos (UsuarioId, Telefone, Celular) Values (@UsuarioId, @Telefone, @Celular); SELECT CAST(scope_identity() AS int)";
+
+                command.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                command.Parameters.AddWithValue("@Telefone", usuario.Contato.Telefone);
+                command.Parameters.AddWithValue("@Celular", usuario.Contato.Celular);
+
+                usuario.Contato.UsuarioId = usuario.Id;
+                usuario.Contato.Id = (int)command.ExecuteScalar();
+
+                foreach (var endereco in usuario.EnderecosEntrega)
+                {
+                    command = new SqlCommand();
+                    command.Connection = (SqlConnection)_connection;
+
+                    command.CommandText = "INSERT INTO EnderecosEntrega (UsuarioId, NomeEndereco, CEP, Estado, Cidade, Bairro, Endereco, Numero, Complemento) Values (@UsuarioId, @NomeEndereco, @CEP, @Estado, @Cidade, @Bairro, @Endereco, @Numero, @Complemento); SELECT CAST(scope_identity() AS int)";
+
+                    command.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                    command.Parameters.AddWithValue("@NomeEndereco", endereco.NomeEndereco);
+                    command.Parameters.AddWithValue("@CEP", endereco.CEP);
+                    command.Parameters.AddWithValue("@Estado", endereco.Estado);
+                    command.Parameters.AddWithValue("@Cidade", endereco.Cidade);
+                    command.Parameters.AddWithValue("@Bairro", endereco.Bairro);
+                    command.Parameters.AddWithValue("@Endereco", endereco.Endereco);
+                    command.Parameters.AddWithValue("@Numero", endereco.Numero);
+                    command.Parameters.AddWithValue("@Complemento", endereco.Complemento);
+
+                    endereco.Id = (int)command.ExecuteScalar();
+                    endereco.UsuarioId = usuario.Id;
+                }
+
+                foreach (var departamento in usuario.Departamentos)
+                {
+                    command = new SqlCommand();
+                    command.Connection = (SqlConnection)_connection;
+
+                    command.CommandText = "INSERT INTO UsuariosDepartamentos (UsuarioId, DepartamentoId) Values (@UsuarioId, @DepartamentoId)";
+
+                    command.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                    command.Parameters.AddWithValue("@DepartamentoId", departamento.Id);
+
+                    command.ExecuteNonQuery();
+                }
             }
             finally
             {

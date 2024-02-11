@@ -10,6 +10,6 @@
 
         public string Celular { get; set; }
 
-        public Usuario Usuario { get; set; }
+        public Usuario? Usuario { get; set; }
     }
 }
