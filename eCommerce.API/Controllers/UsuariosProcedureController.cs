@@ -8,13 +8,13 @@ namespace eCommerce.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsuarioController : ControllerBase
+    public class UsuariosProcedureController : ControllerBase
     {
         private IUsuarioRepository _repository;
 
-        public UsuarioController()
+        public UsuariosProcedureController()
         {
-            _repository = new UsuarioRepository();
+            _repository = new UsuarioProcedureRepository();
         }
 
         [HttpGet]
